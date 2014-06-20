@@ -1,1 +1,1 @@
-http://www.subwaytraveler.biz
+http://www.subwaytraveller.biz
