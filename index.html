@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>subway traveller</title>
+    <!-- reset styles -->
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/sanitize.css/2.0.0/sanitize.min.css">
+	<link href='http://fonts.googleapis.com/css?family=Amatic+SC|Kristi|Sue+Ellen+Francisco|La+Belle+Aurore|The+Girl+Next+Door|Waiting+for+the+Sunrise|Reenie+Beanie|Great+Vibes|Amatic+SC|Dancing+Script|Nothing+You+Could+Do' rel='stylesheet' type='text/css'>
+    <style>
+	    body {
+	    	background: #fff url('img/bg.gif') top left repeat;
+	    	margin: 0;
+	    	padding: 0;
+	    }
+    	h1#words {
+    		font-family: cursive;
+    		width: 100%;
+    		text-align: center;
+    		font-size: 80px;
+    		margin: 0;
+    		padding: 0;
+    		visibility: hidden;
+    	}
+    	h1#words > span {
+    		line-height: 2em;
+    		padding: .3em;
+    		background-color: #fff;
+    		z-index: 1;
+    	}
+    	#line {
+    		position: absolute;
+    		width: 100%;
+    		height: 100%;
+    		top: 0;
+    		left: 0;
+    	}
+    </style>
+
+    <!--[if IE]>
+        <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+
+<body id="home">
+	<div id="line"></div>
+    <h1 id="words"><span class="one word">subway</span> <span class="two word">traveller</span>
+<br /><span class="three word">scribbling</span> <span class="four word">on</span> <span class="five word">papyrus</span>
+<br /><span class="six word">time</span> <span class="seven word">needs</span> <span class="eight word">your</span> <span class="four word">saving</span></h1>
+
+	<!-- sourcery -->
+	<!-- requestAnimationFrame polyfill https://gist.github.com/timhall/4078614 -->
+    <script>
+		// Updated requestAnimationFrame polyfill that uses new high-resolution timestamp
+		//
+		// References:
+		// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+		// https://gist.github.com/1579671
+		// http://updates.html5rocks.com/2012/05/requestAnimationFrame-API-now-with-sub-millisecond-precision
+		//
+		// Note: this is my initial stab at it, *requires additional testing*
+		(function(){var e=0,t=["ms","moz","webkit","o"],n=!!(window.performance&&window.performance.now);for(var r=0,i=t.length;r<i&&!window.requestAnimationFrame;r+=1){window.requestAnimationFrame=window[t[r]+"RequestAnimationFrame"];window.cancelAnimationFrame=window[t[r]+"CancelAnimationFrame"]||window[t[r]+"CancelRequestAnimationFrame"]}if(!window.requestAnimationFrame){window.requestAnimationFrame=function(t,n){var r=(new Date).getTime();var i=Math.max(0,16-(r-e));var s=window.setTimeout(function(){t(r+i)},i);e=r+i;return s}}if(!window.cancelAnimationFrame){window.cancelAnimationFrame=function(e){clearTimeout(e)}}if(!n){var s=window.requestAnimationFrame,o=+(new Date);window.requestAnimationFrame=function(e,t){var n=function(t){var n=t<1e12?t:t-o;return e(n)};s(n,t)}}})()
+    </script>
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js"></script>
+    <script>
+    	jQuery(function($) {
+    		
+    		var fontFamilies = [
+    			'Amatic SC'
+    			, 'Kristi'
+    			, 'Sue Ellen Francisco'
+				, 'La Belle Aurore'
+				, 'The Girl Next Door'
+				, 'Waiting for the Sunrise'
+				, 'Reenie Beanie'
+				, 'Great Vibes'
+				, 'Amatic SC'
+				, 'Dancing Script'
+				, 'Nothing You Could Do'
+    		]
+    		, $words = $('#words')
+    		, count = $words.find('.word').length
+    		, timestamp = (new Date()).getTime()
+    		, d3Svg
+    		, d3Line
+    		, drawId
+    		, data;
+
+
+    		function setup(timestamp) {
+    			var body = d3.select('body')
+    				, width = body.attr('width')
+    				, height = body.attr('attr');
+
+    			d3Svg = d3.select('#line').append('svg')
+    					.attr('width', width)
+    					.attr('height', height);
+
+    			d3Line = d3Svg.append('path');
+    					
+    			console.log('width', body, width, width/2);
+
+    			data = [
+    				{ x: width/2, y:-100 }
+    			]
+
+
+    			$words.css('visibility', 'visible');
+    		}
+
+    		function drawLine() {
+
+    			var lineFunction = d3.svg.line()
+    									.x(function(d) { return d.x; })
+    									.y(function(d) { return d.y; })
+    									.interpolate('basis');
+
+    			d3Line
+    				.attr('d', lineFunction(data))
+					.attr('stroke', '#000')
+    				.attr('stroke-width', 1)
+    				.attr('fill', 'none');
+    		}
+
+    		function draw(timestamp) {
+    			var $body = $('body')
+    				, scrollTop = $body.scrollTop()
+    				, margin = parseInt($words.css('margin-top').slice(0, -2))
+    				, offset = Math.floor(count ? (timestamp % count - 1) : (count - 1));
+
+
+	    		$words.find('.word').each(function(i, el) {	
+	    			i = Math.abs(i - offset);
+	    			$(this).css('font-family', fontFamilies[i])
+	    		});
+	    		
+
+	    		$words.css('margin-top', (margin + 1));
+
+	    		data.push({y: margin, x: (($body.width()/2) + offset*5) });
+
+	    		drawLine();
+
+	    		drawId = window.requestAnimationFrame(draw);
+
+    		}
+
+    		setup(timestamp);
+    		draw(timestamp);
+
+    	});
+    </script>
+</body>
+</html>
